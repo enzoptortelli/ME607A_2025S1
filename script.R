@@ -23,8 +23,11 @@ ggplot(serie, aes(x = data, y = preco_m2)) +
        y = 'Preço') +
   theme_bw()
 
-decomp <- serie %>%
-  model(STL(preco_m2 ~ season(window = 12))) %>%
-  components()
+mts <- ts(serie$preco_m2, frequency = 12, start = c(1994,7)) #Transformando em ts 
+mts_SMA_12 <- SMA(mts, n=12) # "Manualmente" calculando tendência con n = nº de meses num ano
+add_mts <- decompose(mts,type = "additive") # Duas decomposições diferentes
+mult_mts <- decompose(mts,type = "multiplicative")
 
-autoplot(decomp)
+periodogram(mts) # Periodograma sem remover tendência 
+periodograma <- data.frame(freq = 0:143/144, periodograma = periodogram(na.omit(mts - add_mts$trend),plot = F)$spec)
+1/periodograma$freq[which.max(periodograma$periodograma)] #aproximadamente 6 meses o melhor candidato pra frequência de acordo com o periodograma (apesar de eu achar que não é muito válido)

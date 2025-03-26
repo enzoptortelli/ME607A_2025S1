@@ -2,6 +2,10 @@ library(tidyverse)
 library(tsibble)
 library(fpp3)
 library(astsa)
+library(TSA)
+library(forecast)
+library(patchwork)
+
 
 serie <- read_tsv('dados/serie_preco_m2.tsv', 
                   locale = locale(decimal_mark = ',')) %>% #faz o read_tsv entender que a vírgula é separador decimal
@@ -31,3 +35,39 @@ mult_mts <- decompose(mts,type = "multiplicative")
 periodogram(mts) # Periodograma sem remover tendência 
 periodograma <- data.frame(freq = 0:143/144, periodograma = periodogram(na.omit(mts - add_mts$trend),plot = F)$spec)
 1/periodograma$freq[which.max(periodograma$periodograma)] #aproximadamente 6 meses o melhor candidato pra frequência de acordo com o periodograma (apesar de eu achar que não é muito válido)
+
+mts %>%
+  autoplot()+
+  autolayer(fitted(tslm(mts ~ trend + season)),
+  color = "red")+
+  autolayer(fitted(tslm(mts ~ trend)),
+  color = "blue")+
+  labs(title = "Modelo de regressão com tendência e \n com tendência + sazonalidade")  #Séries com os dois modelos de regressão
+
+time_plot <-  autoplot(residuals(tslm(mts ~ trend)), 
+  color = "red")+
+  labs(title = "Série dos resíduos", y = element_blank(), x = "Tempo")
+acf_plot <- ggAcf(tslm(mts ~ trend)$residuals, lag.max = 24) +
+  labs(title = "ACF dos resíduos modelo \n com tendência") +
+  theme_minimal()
+hist_plot <- ggplot(data = NULL, aes(x = tslm(mts ~ trend)$residuals)) +
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "tomato1", color = "black") +
+  labs(title = "Histograma dos resíduos modelo \n com tendência", x = "Residuos",y = "Densidade") +
+  theme_minimal()
+
+(hist_plot | acf_plot) / time_plot #Análise de resíduos do modelo de regressão com tendência
+tslm(mts ~ trend)$coefficients
+
+time_plot <- autoplot(residuals(tslm(mts ~ trend + season)),
+         color = "blue")+
+         labs(title = "Série dos resíduos", y = element_blank(), x = "Tempo")
+acf_plot <-ggAcf(tslm(mts ~ trend + season)$residuals, lag.max = 24) +
+  labs(title = "ACF dos resíduos modelo \n com tendência + sazonalidade") +
+  theme_minimal()
+hist_plot <- ggplot(data = NULL, aes(x = tslm(mts ~ trend + season)$residuals)) +
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "lightblue", color = "black") +
+  labs(title = "Histograma dos resíduos modelo \n com tendência + sazonalidade", x = "Residuos",y = "Densidade") +
+  theme_minimal()
+
+(hist_plot | acf_plot) / time_plot #Análise de resíduos do modelo de regressão com tendência + sazonalidade
+tslm(mts ~ trend + season)$coefficients

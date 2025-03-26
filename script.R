@@ -103,3 +103,4 @@ hist_plot <- ggplot(data = NULL, aes(x = tslm(mts ~ trend + season)$residuals)) 
 
 (hist_plot | acf_plot) / time_plot #Análise de resíduos do modelo de regressão com tendência + sazonalidade
 tslm(mts ~ trend + season)$coefficients
+#teste

@@ -39,12 +39,23 @@ rm(temp, n)
 serie$preco_m2 <- serie$preco_m2 * ipca_acumulado
 
 #--- Análise descritiva ---#
+# gráfico de sequência
 ggplot(serie, aes(x = data, y = preco_m2)) +
   geom_line() +
-  labs(title = 'Preço médio do m2 (construção civil)',
-       x = 'mês/ano',
+  labs(title = 'Preço médio do m² (Construção civil) (Estado de SP)',
+       x = 'Mês/ano',
        y = 'Preço') +
   theme_bw()
+
+# gráfico de sequência separado por ano
+gg_season(serie, preco_m2, period = 'year') +
+  labs(title = 'Preço médio do m² (Construção civil) (Estado de SP)',
+       x = 'Mês/ano',
+       y = 'Preço') +
+  theme_bw()
+
+# correlograma
+ACF(serie, y = preco_m2) %>% autoplot() + theme_bw()
 
 
 #--- Decomposição ---#

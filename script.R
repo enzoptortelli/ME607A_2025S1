@@ -7,6 +7,7 @@ library(forecast)
 library(patchwork)
 
 
+#--- Lendo os dados ---#
 serie <- read_tsv('dados/serie_preco_m2.tsv', 
                   locale = locale(decimal_mark = ',')) %>% #faz o read_tsv entender que a vírgula é separador decimal
   pivot_longer(!UF, names_to = 'data', values_to = 'preco_m2') %>%
@@ -19,7 +20,25 @@ serie <- read_tsv('dados/serie_preco_m2.tsv',
   filter(data >= make_yearmonth(1994, 7)) %>%
   as_tsibble(index = data)
 
+serie_ipca <- read_tsv('dados/serie_ipca.tsv')
 
+
+#--- Corrigindo a série pela inflação ---#
+# Ao invés de desinflacionar a série, nós vamos inflacioná-la (trazer todos os preços para os dias atuais)
+n <- dim(serie_ipca)[1]
+serie_ipca$ipca <- (serie_ipca$ipca / 100) + 1
+serie_ipca$ipca[n] <- 1 # o último mês da série tem que ter ipca neutro, pois ele se corrige o preço para o mês seguinte (que não está nos dados)
+ipca_acumulado <- vector(mode = 'numeric', length = n)
+
+for(i in 1:n) {
+  temp <- serie_ipca$ipca[i:n]
+  ipca_acumulado[i] <- prod(temp)
+}
+rm(temp, n)
+
+serie$preco_m2 <- serie$preco_m2 * ipca_acumulado
+
+#--- Análise descritiva ---#
 ggplot(serie, aes(x = data, y = preco_m2)) +
   geom_line() +
   labs(title = 'Preço médio do m2 (construção civil)',
@@ -27,8 +46,10 @@ ggplot(serie, aes(x = data, y = preco_m2)) +
        y = 'Preço') +
   theme_bw()
 
+
+#--- Decomposição ---#
 mts <- ts(serie$preco_m2, frequency = 12, start = c(1994,7)) #Transformando em ts 
-mts_SMA_12 <- SMA(mts, n=12) # "Manualmente" calculando tendência con n = nº de meses num ano
+# mts_SMA_12 <- SMA(mts, n=12) # "Manualmente" calculando tendência con n = nº de meses num ano
 add_mts <- decompose(mts,type = "additive") # Duas decomposições diferentes
 mult_mts <- decompose(mts,type = "multiplicative")
 

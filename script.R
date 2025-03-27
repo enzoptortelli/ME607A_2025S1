@@ -150,6 +150,6 @@ tslm(mts ~ trend + season)$coefficients
 #--- Salvando as imagens ---#
 lista_imagens <- ls()[str_starts(ls(), pattern = 'plot_')]
 sapply(lista_imagens, function(x) {
-  ggsave(x, plot = get(x), device = 'png', path = 'plots')
+  ggsave(str_glue(x, '.png'), plot = get(x), device = 'png', path = 'plots')
 })
   

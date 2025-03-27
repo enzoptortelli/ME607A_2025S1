@@ -105,14 +105,24 @@ mts <- ts(serie$preco_m2, frequency = 12, start = c(1994,7)) #Transformando em t
 add_mts <- decompose(mts,type = "additive") # Duas decomposições diferentes
 mult_mts <- decompose(mts,type = "multiplicative")
 
-plot_period <- periodogram(mts) # Periodograma sem remover tendência 
+pgram <- periodogram(na.omit(mts - add_mts$trend), plot = FALSE)
+plot_periodograma <- ggplot(data.frame(Frequency = pgram$freq, SpectralDensity = pgram$spec), 
+                      aes(x = Frequency, y = SpectralDensity)) +
+  geom_line() +
+  labs(title = "Periodograma da Série Temporal",
+       x = "Frequência",
+       y = "Densidade Espectral") +
+  theme_minimal() # Periodograma removendo tendência 
 periodograma <- data.frame(freq = 0:143/144, periodograma = periodogram(na.omit(mts - add_mts$trend),plot = F)$spec)
 1/periodograma$freq[which.max(periodograma$periodograma)] #aproximadamente 6 meses o melhor candidato pra frequência de acordo com o periodograma (apesar de eu achar que não é muito válido)
 
+
 plot_reg <- mts %>%
-  autoplot() +
-  geom_line(aes(y = fitted(tslm(mts ~ trend + season))), color = "red") +
-  geom_line(aes(y = fitted(tslm(mts ~ trend))), color = "blue") +
+  autoplot()+
+  autolayer(fitted(tslm(mts ~ trend + season)),
+  color = "red")+
+  autolayer(fitted(tslm(mts ~ trend)),
+  color = "blue")+
   labs(title = "Modelo de regressão com tendência e \n com tendência + sazonalidade")  #Séries com os dois modelos de regressão
 
 time_plot <-  autoplot(residuals(tslm(mts ~ trend)), 
@@ -142,7 +152,23 @@ hist_plot <- ggplot(data = NULL, aes(x = tslm(mts ~ trend + season)$residuals)) 
 
 plot_res_reg_2 <- (hist_plot | acf_plot) / time_plot #Análise de resíduos do modelo de regressão com tendência + sazonalidade
 tslm(mts ~ trend + season)$coefficients
-#teste
+
+
+train <- window(mts, end = c(2017,6))
+test <- window(mts, start = c(2017,7))
+fore_ses <- ses(train, h = 12,  alpha = 0.8, initial = "simple")
+fore_ses_opt <- ses(train, h = 12, initial = "optimal")
+
+plot_ses <- autoplot(mts,color = "black")+
+  autolayer(ts.union(fitted(fore_ses),fore_ses$mean),color = "green")+
+  autolayer(fore_ses$upper)+
+  autolayer(fore_ses$lower)+
+  labs(title = "Suavização exponencial simples")
+plot_ses_opt <- autoplot(mts,color = "black")+
+  autolayer(ts.union(fitted(fore_ses_opt),fore_ses_opt$mean),color = "green")+
+  autolayer(fore_ses_opt$upper)+
+  autolayer(fore_ses_opt$lower)+
+  labs(title = "Suavização exponencial otimizada") #Gráficos da suavização exponencial ajustada
 
 
 #--- Salvando as imagens ---#

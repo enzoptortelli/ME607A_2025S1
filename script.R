@@ -105,16 +105,14 @@ mts <- ts(serie$preco_m2, frequency = 12, start = c(1994,7)) #Transformando em t
 add_mts <- decompose(mts,type = "additive") # Duas decomposições diferentes
 mult_mts <- decompose(mts,type = "multiplicative")
 
-periodogram(mts) # Periodograma sem remover tendência 
+plot_period <- periodogram(mts) # Periodograma sem remover tendência 
 periodograma <- data.frame(freq = 0:143/144, periodograma = periodogram(na.omit(mts - add_mts$trend),plot = F)$spec)
 1/periodograma$freq[which.max(periodograma$periodograma)] #aproximadamente 6 meses o melhor candidato pra frequência de acordo com o periodograma (apesar de eu achar que não é muito válido)
 
-mts %>%
-  autoplot()+
-  autolayer(fitted(tslm(mts ~ trend + season)),
-  color = "red")+
-  autolayer(fitted(tslm(mts ~ trend)),
-  color = "blue")+
+plot_reg <- mts %>%
+  autoplot() +
+  geom_line(aes(y = fitted(tslm(mts ~ trend + season))), color = "red") +
+  geom_line(aes(y = fitted(tslm(mts ~ trend))), color = "blue") +
   labs(title = "Modelo de regressão com tendência e \n com tendência + sazonalidade")  #Séries com os dois modelos de regressão
 
 time_plot <-  autoplot(residuals(tslm(mts ~ trend)), 
@@ -128,7 +126,7 @@ hist_plot <- ggplot(data = NULL, aes(x = tslm(mts ~ trend)$residuals)) +
   labs(title = "Histograma dos resíduos modelo \n com tendência", x = "Residuos",y = "Densidade") +
   theme_minimal()
 
-(hist_plot | acf_plot) / time_plot #Análise de resíduos do modelo de regressão com tendência
+plot_res_reg_1 <- (hist_plot | acf_plot) / time_plot #Análise de resíduos do modelo de regressão com tendência
 tslm(mts ~ trend)$coefficients
 
 time_plot <- autoplot(residuals(tslm(mts ~ trend + season)),
@@ -142,7 +140,7 @@ hist_plot <- ggplot(data = NULL, aes(x = tslm(mts ~ trend + season)$residuals)) 
   labs(title = "Histograma dos resíduos modelo \n com tendência + sazonalidade", x = "Residuos",y = "Densidade") +
   theme_minimal()
 
-(hist_plot | acf_plot) / time_plot #Análise de resíduos do modelo de regressão com tendência + sazonalidade
+plot_res_reg_2 <- (hist_plot | acf_plot) / time_plot #Análise de resíduos do modelo de regressão com tendência + sazonalidade
 tslm(mts ~ trend + season)$coefficients
 #teste
 

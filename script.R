@@ -49,7 +49,7 @@ plot_seq_original <- ggplot(serie_original, aes(x = data, y = preco_m2)) +
 
 plot_seq_ajustada <- ggplot(serie, aes(x = data, y = preco_m2)) +
   geom_line() +
-  labs(title = 'Preço médio do m² (Construção civil) (Estado de SP)',
+  labs(title = 'Preço médio do m² ajustado pela inflação (Construção civil) (Estado de SP)',
        x = 'Mês/ano',
        y = 'Preço') +
   theme_bw()
@@ -73,10 +73,10 @@ modelo_snaive <- serie %>% model(snaive = SNAIVE(preco_m2 ~ lag(12)))
 modelo_drift <- serie %>% model(drift = RW(preco_m2 ~ drift()))
 
 ## Análise resídual
-plot_res_modelo_mean <- gg_tsresiduals(modelo_mean)
-plot_res_modelo_naive <- gg_tsresiduals(modelo_naive)
-plot_res_modelo_snaive <- gg_tsresiduals(modelo_snaive)
-plot_res_modelo_drift <- gg_tsresiduals(modelo_drift)
+plot_res_modelo_mean <- gg_tsresiduals(modelo_mean) + labs(title = 'Análise residual modelo MEAN')
+plot_res_modelo_naive <- gg_tsresiduals(modelo_naive) + labs(title = 'Análise residual modelo NAIVE')
+plot_res_modelo_snaive <- gg_tsresiduals(modelo_snaive) + labs(title = 'Análise residual modelo SNAIVE')
+plot_res_modelo_drift <- gg_tsresiduals(modelo_drift) + labs(title = 'Análise residual modelo DRIFT')
 
 ## Análise de predição
 modelos_basicos <- serie %>% model(mean = MEAN(preco_m2),

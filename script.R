@@ -113,7 +113,7 @@ plot_periodograma <- ggplot(data.frame(Frequency = pgram$freq, SpectralDensity =
        x = "Frequência",
        y = "Densidade Espectral") +
   theme_minimal() # Periodograma removendo tendência 
-periodograma <- data.frame(freq = 0:143/144, periodograma = periodogram(na.omit(mts - add_mts$trend),plot = F)$spec)
+periodograma <- data.frame(freq = 0:287/288, periodograma = periodogram(na.omit(mts - add_mts$trend),plot = F)$spec)
 1/periodograma$freq[which.max(periodograma$periodograma)] #aproximadamente 6 meses o melhor candidato pra frequência de acordo com o periodograma (apesar de eu achar que não é muito válido)
 
 
@@ -151,11 +151,12 @@ hist_plot <- ggplot(data = NULL, aes(x = tslm(mts ~ trend + season)$residuals)) 
   theme_minimal()
 
 plot_res_reg_2 <- (hist_plot | acf_plot) / time_plot #Análise de resíduos do modelo de regressão com tendência + sazonalidade
+
 tslm(mts ~ trend + season)$coefficients
 
 
-train <- window(mts, end = c(2017,6))
-test <- window(mts, start = c(2017,7))
+train <- window(mts, end = c(2017,11))
+test <- window(mts, start = c(2017,12))
 fore_ses <- ses(train, h = 12,  alpha = 0.8, initial = "simple")
 fore_ses_opt <- ses(train, h = 12, initial = "optimal")
 
@@ -172,6 +173,17 @@ plot_ses_opt <- autoplot(mts,color = "black")+
   labs(title = "Suavização exponencial otimizada")+
   theme_bw()#Gráficos da suavização exponencial ajustada
 
+autoplot(residuals(fore_ses))+
+  labs(y = "resíduos")
+autoplot(residuals(fore_ses_opt))+
+  labs(y = "resíduos")
+geom_histogram(residuals(fore_ses))
+
+plot_res_ses <- checkresiduals(fore_ses)
+plot_res_ses_opt <- checkresiduals(fore_ses_opt)
+
+accuracy(fore_ses, test)
+accuracy(fore_ses_opt, test)
 
 #--- Salvando as imagens ---#
 lista_imagens <- ls()[str_starts(ls(), pattern = 'plot_')]

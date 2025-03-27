@@ -160,15 +160,17 @@ fore_ses <- ses(train, h = 12,  alpha = 0.8, initial = "simple")
 fore_ses_opt <- ses(train, h = 12, initial = "optimal")
 
 plot_ses <- autoplot(mts,color = "black")+
-  autolayer(ts.union(fitted(fore_ses),fore_ses$mean),color = "green")+
+  autolayer(ts.union(fitted(fore_ses),fore_ses$mean),color = "red")+
   autolayer(fore_ses$upper)+
   autolayer(fore_ses$lower)+
-  labs(title = "Suavização exponencial simples")
+  labs(title = "Suavização exponencial simples")+
+  theme_bw()
 plot_ses_opt <- autoplot(mts,color = "black")+
-  autolayer(ts.union(fitted(fore_ses_opt),fore_ses_opt$mean),color = "green")+
+  autolayer(ts.union(fitted(fore_ses_opt),fore_ses_opt$mean),color = "red")+
   autolayer(fore_ses_opt$upper)+
   autolayer(fore_ses_opt$lower)+
-  labs(title = "Suavização exponencial otimizada") #Gráficos da suavização exponencial ajustada
+  labs(title = "Suavização exponencial otimizada")+
+  theme_bw()#Gráficos da suavização exponencial ajustada
 
 
 #--- Salvando as imagens ---#

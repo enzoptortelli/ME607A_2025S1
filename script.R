@@ -195,7 +195,78 @@ plot_res_ses_opt <- checkresiduals(fore_ses_opt)
 accuracy(fore_ses, test)
 accuracy(fore_ses_opt, test)
 
+
+#AR 
+
+plot_Pacf_serie <- ggPacf(mts) #analisar Pacf para estimar valores e p para AR(p), podemos concluir que 1 é o máximo viavel mas tentaremos com p = 2 também
+
+ar1_mm <- function(x) {
+  mu <- mean(x)
+  sigma2 <- var(x)
+  rho <- acf(x, 1, plot = FALSE)$acf[1]
+  phi <- rho
+  sigma2_eps <- sigma2*(1 - phi^2)
+  parametros <- matrix(c(mu, sigma2, sigma2_eps, phi), nrow = 1)
+  colnames(parametros) <- c("mu", "sigma2", "sigma2_eps", "phi")
+  return(parametros)
+}
+
+mu <- ar1_mm(mts)[1, "mu"]
+phi <- ar1_mm(mts)[1, "phi"]
+
+for (t in 2:length(mts)) {
+  fitted_vals[t] <- mu + phi * (mts[t-1] - mu)
+}
+fitted_vals <- ts(c(NA,fitted_vals), start = start(mts), frequency = frequency(mts))
+
+
+autoplot(mts, series = "Serie original") +
+  autolayer(fitted_vals, series = "AR(1) Fitted", linetype = "dashed", color = "red") +
+  labs(title = "AR(1) ajustado por MM, phi = 0.94",
+       y = "Preço m2 construido", x = "Tempo") +
+  theme_minimal() +
+  scale_color_manual(values = c("Serie originial" = "black", "AR(1) ajustado" = "blue"))
+
+plot_ar_2_res <- autoplot(mts - fitted_vals, series = "residuo do modleo AR(1)") +
+  labs(title = "Resíduos do modelo AR(1)")
+
+# AR 2 BABYY
+ar2_mm <- function(x) {
+  mu <- mean(x)
+  sigma2 <- var(x)
+  rho <- acf(x, 2, plot = FALSE)$acf
+  gammas <- acf(mts, lag.max = 2, type = "covariance", plot = FALSE)$acf
+  M1 <- matrix(c(1, rho[1], rho[1], 1), ncol = 2)
+  M2 <- matrix(c(rho[1], rho[2]), ncol = 1)
+  phi <- solve(M1) %*% M2
+  sigma2_eps <- gammas[1] - phi[1] * gammas[2] - phi[2] * gammas[3]
+  parametros <- matrix(c(mu, sigma2, sigma2_eps, phi[1],phi[2]), nrow = 1)
+  colnames(parametros) <- c("mu", "sigma2", "sigma2_eps", "phi_1","phi_2")
+  return(parametros)
+} 
+
+phi_1 <- ar2_mm(mts)[4]
+phi_2 <- ar2_mm(mts)[5]
+
+fitted_vals <- ts(rep(NA, length(mts)), start = start(mts), frequency = frequency(mts))
+for (t in 3:length(mts)) {
+  fitted_vals[t] <- mu + phi_1 * (mts[t-1] - mu) + phi_2 * (mts[t-2] - mu)
+}
+
+plot_ar_2 <- autoplot(mts, series = "Observed") +
+  autolayer(fitted_vals, series = "AR(2) ajustado", linetype = "dashed", color = "blue") +
+  labs(title = "AR(2) ajustado com MM",
+       y = "Preço do M^2 construido", x = "Tempo") +
+  theme_minimal() +
+  scale_color_manual(values = c("Série original" = "black", "AR(2) Ajustado" = "blue"))
+
+plot_ar_2_res <- autoplot(mts - fitted_vals, series = "residuo do modleo AR(2)") +
+  labs(title = "Resíduos do modelo AR(2)")
+
+rm(fitted_vals,phi,phi_1,phi_2,mu)
+
 #--- Salvando as imagens ---#
+
 lista_imagens <- ls()[str_starts(ls(), pattern = 'plot_')]
 sapply(lista_imagens, function(x) {
   ggsave(str_glue(x, '.png'), plot = get(x), device = 'png', path = 'plots')

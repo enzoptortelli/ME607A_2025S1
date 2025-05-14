@@ -200,74 +200,37 @@ accuracy(fore_ses_opt, test)
 
 plot_Pacf_serie <- ggPacf(mts) #analisar Pacf para estimar valores e p para AR(p), podemos concluir que 1 é o máximo viavel mas tentaremos com p = 2 também
 
-ar1_mm <- function(x) {
-  mu <- mean(x)
-  sigma2 <- var(x)
-  rho <- acf(x, 1, plot = FALSE)$acf[1]
-  phi <- rho
-  sigma2_eps <- sigma2*(1 - phi^2)
-  parametros <- matrix(c(mu, sigma2, sigma2_eps, phi), nrow = 1)
-  colnames(parametros) <- c("mu", "sigma2", "sigma2_eps", "phi")
-  return(parametros)
-}
+fit <- serie %>%
+  model(ar1 = AR(value ~ order(1)))
 
-mu <- ar1_mm(mts)[1, "mu"]
-phi <- ar1_mm(mts)[1, "phi"]
+fitted_data <- fit %>% augment()
 
-for (t in 2:length(mts)) {
-  fitted_vals[t] <- mu + phi * (mts[t-1] - mu)
-}
-fitted_vals <- ts(c(NA,fitted_vals), start = start(mts), frequency = frequency(mts))
+autoplot(serie) +
+  autolayer(fitted_data, .fitted, color = "blue", linetype = "dashed") +
+  labs(title = "Série original e AR(1) Ajustado",
+       y = "Preço do m^2 construido", x = "Tempo") +
+  theme_minimal()
 
-
-autoplot(mts, series = "Serie original") +
-  autolayer(fitted_vals, series = "AR(1) Fitted", linetype = "dashed", color = "red") +
-  labs(title = "AR(1) ajustado por MM, phi = 0.94",
-       y = "Preço m2 construido", x = "Tempo") +
-  theme_minimal() +
-  scale_color_manual(values = c("Serie originial" = "black", "AR(1) ajustado" = "blue"))
-
-plot_ar_1_res <- autoplot(mts - fitted_vals, series = "residuo do modleo AR(1)") +
+plot_ar1_res <- autoplot(residuals(fit) , series = "residuo do modelo AR(1)") +
   labs(title = "Resíduos do modelo AR(1)")
 
-res_med_abs_ar1 <- sum(abs(na.omit(mts - fitted_vals)))/length(na.omit(fitted_vals))
-
+res_med_abs_ar1 <- accuracy(fit)["MAE"]
 # AR 2 BABYY
-ar2_mm <- function(x) {
-  mu <- mean(x)
-  sigma2 <- var(x)
-  rho <- acf(x, 2, plot = FALSE)$acf
-  gammas <- acf(mts, lag.max = 2, type = "covariance", plot = FALSE)$acf
-  M1 <- matrix(c(1, rho[1], rho[1], 1), ncol = 2)
-  M2 <- matrix(c(rho[1], rho[2]), ncol = 1)
-  phi <- solve(M1) %*% M2
-  sigma2_eps <- gammas[1] - phi[1] * gammas[2] - phi[2] * gammas[3]
-  parametros <- matrix(c(mu, sigma2, sigma2_eps, phi[1],phi[2]), nrow = 1)
-  colnames(parametros) <- c("mu", "sigma2", "sigma2_eps", "phi_1","phi_2")
-  return(parametros)
-} 
+fit <- serie %>%
+  model(ar2 = AR(value ~ order(2)))
 
-phi_1 <- ar2_mm(mts)[4]
-phi_2 <- ar2_mm(mts)[5]
+fitted_data <- fit %>% augment()
 
-fitted_vals <- ts(rep(NA, length(mts)), start = start(mts), frequency = frequency(mts))
-for (t in 3:length(mts)) {
-  fitted_vals[t] <- mu + phi_1 * (mts[t-1] - mu) + phi_2 * (mts[t-2] - mu)
-}
+autoplot(serie) +
+  autolayer(fitted_data, .fitted, color = "blue", linetype = "dashed") +
+  labs(title = "Série original e AR(2) Ajustado",
+       y = "Preço do m^2 construido", x = "Tempo") +
+  theme_minimal()
 
-plot_ar_2 <- autoplot(mts, series = "Observed") +
-  autolayer(fitted_vals, series = "AR(2) ajustado", linetype = "dashed", color = "blue") +
-  labs(title = "AR(2) ajustado com MM",
-       y = "Preço do M^2 construido", x = "Tempo") +
-  theme_minimal() +
-  scale_color_manual(values = c("Série original" = "black", "AR(2) Ajustado" = "blue"))
-
-plot_ar_2_res <- autoplot(mts - fitted_vals, series = "residuo do modleo AR(2)") +
+plot_ar_2_res <- autoplot(residuals(fit) , series = "residuo do modleo AR(2)") +
   labs(title = "Resíduos do modelo AR(2)")
 
-res_med_abs_ar2 <- sum(abs(na.omit(mts - fitted_vals)))/length(na.omit(fitted_vals))
-
-rm(fitted_vals,phi,phi_1,phi_2,mu)
+res_med_abs_ar2 <- accuracy(fit)["MAE"]
 
 #--- Salvando as imagens ---#
 

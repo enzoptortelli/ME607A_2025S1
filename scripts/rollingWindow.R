@@ -6,7 +6,7 @@ rollingWindow <- function(serie, n = 50, h = 3) {
   for(func_file in funcs_previsao) {
     source(str_glue('scripts/',func_file))
   }
-  funcs_previsao <- funcs_previsao |> str_remove(pattern = '.R')
+  funcs_previsao <- funcs_previsao |> str_sub(end = -3)
   
   num_previsoes <- nrow(serie) - n - h + 1
   

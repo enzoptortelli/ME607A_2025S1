@@ -1,0 +1,11 @@
+Como usar o script para fazer rolling window automático:
+
+1) Você deve criar uma função com duas entradas: 'serie', 'h'.
+'serie' é a varíavel que vai receber a série (truncada para ser do tamanho da janela). Os valores de interesse estarão na variável 'valor'. Ou seja, para acessar o preço do metro quadrado, basta fazer 'serie$valor';
+'h' é a variável do número de passos na previsão. Ou seja, se h = 3, queremos a previsão para os 3 próximos momentos.
+
+2) A função deve retornar um vetor numérico com tamanho 'h'. Assim, o primeiro elemento desse vetor será a previsão em 1 passo, o segundo, em 2 passos, etc.
+
+3) Cada modelo deve estar em um arquivo próprio, com o nome da seguinte maneira: 'prev_modelo_nome.R'. O nome da função deve ser igual ao nome do arquivo: 'prev_modelo_nome'.
+
+4) Veja os arquivos já criados como exemplos.

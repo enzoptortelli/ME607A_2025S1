@@ -201,7 +201,7 @@ accuracy(fore_ses_opt, test)
 plot_Pacf_serie <- ggPacf(mts) #analisar Pacf para estimar valores e p para AR(p), podemos concluir que 1 é o máximo viavel mas tentaremos com p = 2 também
 
 fit <- serie %>%
-  model(ar1 = AR(value ~ order(1)))
+  model(ar1 = AR(preco_m2 ~ order(1)))
 
 fitted_data <- fit %>% augment()
 
@@ -217,7 +217,7 @@ plot_ar1_res <- autoplot(residuals(fit) , series = "residuo do modelo AR(1)") +
 res_med_abs_ar1 <- accuracy(fit)["MAE"]
 # AR 2 BABYY
 fit <- serie %>%
-  model(ar2 = AR(value ~ order(2)))
+  model(ar2 = AR(preco_m2 ~ order(2)))
 
 fitted_data <- fit %>% augment()
 

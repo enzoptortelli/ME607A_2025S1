@@ -227,8 +227,10 @@ autoplot(mts, series = "Serie original") +
   theme_minimal() +
   scale_color_manual(values = c("Serie originial" = "black", "AR(1) ajustado" = "blue"))
 
-plot_ar_2_res <- autoplot(mts - fitted_vals, series = "residuo do modleo AR(1)") +
+plot_ar_1_res <- autoplot(mts - fitted_vals, series = "residuo do modleo AR(1)") +
   labs(title = "Resíduos do modelo AR(1)")
+
+res_med_abs_ar1 <- sum(abs(na.omit(mts - fitted_vals)))/length(na.omit(fitted_vals))
 
 # AR 2 BABYY
 ar2_mm <- function(x) {
@@ -262,6 +264,8 @@ plot_ar_2 <- autoplot(mts, series = "Observed") +
 
 plot_ar_2_res <- autoplot(mts - fitted_vals, series = "residuo do modleo AR(2)") +
   labs(title = "Resíduos do modelo AR(2)")
+
+res_med_abs_ar2 <- sum(abs(na.omit(mts - fitted_vals)))/length(na.omit(fitted_vals))
 
 rm(fitted_vals,phi,phi_1,phi_2,mu)
 

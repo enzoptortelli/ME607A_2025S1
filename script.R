@@ -54,6 +54,16 @@ plot_seq_ajustada <- ggplot(serie, aes(x = data, y = preco_m2)) +
        y = 'Preço') +
   theme_bw()
 
+plot_box_sazonal <- ggplot(serie %>% as_tibble() %>% mutate(data = month(data, label = TRUE)),
+                           aes(x = data, y = preco_m2, fill = data)) +
+  geom_violin(draw_quantiles = 0.5) +
+  labs(title = 'Boxplot do preço médio do m² agrupados por mês',
+       x = 'Mês',
+       y = 'Preço') +
+  theme_bw()
+
+
+
 # gráfico de sequência separado por ano
 plot_seq_season <- gg_season(serie, preco_m2, period = 'year') +
   labs(title = 'Preço médio do m² (Construção civil) (Estado de SP)',

@@ -211,10 +211,24 @@ autoplot(serie) +
        y = "Preço do m^2 construido", x = "Tempo") +
   theme_minimal()
 
-plot_ar1_res <- autoplot(residuals(fit) , series = "residuo do modelo AR(1)") +
+
+ar_1_res_timeplot <- autoplot(residuals(fit) , series = "residuo do modleo AR(1)") +
   labs(title = "Resíduos do modelo AR(1)")
 
+ar_1_res_hist <- ggplot(data = NULL, aes(x = residuals(fit)$.resid)) +
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "lightblue", color = "black") +
+  labs(title = "Histograma dos resíduos modelo AR(1)", x = "Residuos",y = "Densidade") +
+  theme_minimal()
+
+ar_1_res_acf <- ggAcf(residuals(fit))+ 
+  labs(title = "acf resíduos AR(1)")+
+  theme_minimal()
+
+plot_ar_1_res <- ( ar_1_res_hist| ar_1_res_acf ) / ar_1_res_timeplot
+
 res_med_abs_ar1 <- accuracy(fit)["MAE"]
+
+rm(ar_1_res_acf,ar_1_res_hist,ar_1_res_timeplot,fitted_data,fit)
 # AR 2 BABYY
 fit <- serie %>%
   model(ar2 = AR(preco_m2 ~ order(2)))
@@ -227,10 +241,23 @@ autoplot(serie) +
        y = "Preço do m^2 construido", x = "Tempo") +
   theme_minimal()
 
-plot_ar_2_res <- autoplot(residuals(fit) , series = "residuo do modleo AR(2)") +
+ar_2_res_timeplot <- autoplot(residuals(fit) , series = "residuo do modleo AR(2)") +
   labs(title = "Resíduos do modelo AR(2)")
 
+ar_2_res_hist <- ggplot(data = NULL, aes(x = residuals(fit)$.resid)) +
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "lightblue", color = "black") +
+  labs(title = "Histograma dos resíduos modelo AR(2)", x = "Residuos",y = "Densidade") +
+  theme_minimal()
+
+ar_2_res_acf <- ggAcf(residuals(fit))+ 
+  labs(title = "acf resíduos AR(2)")+
+  theme_minimal()
+
+plot_ar_2_res <- ( ar_2_res_hist| ar_2_res_acf ) / ar_2_res_timeplot
+
 res_med_abs_ar2 <- accuracy(fit)["MAE"]
+
+rm(ar_2_res_acf,ar_2_res_hist,ar_2_res_timeplot,fitted_data,fit)
 
 #--- Salvando as imagens ---#
 

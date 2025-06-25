@@ -74,8 +74,13 @@ plot_seq_season <- gg_season(serie, preco_m2, period = 'year') +
   theme_bw()
 
 # correlograma
-plot_acf <- ACF(serie, y = preco_m2) %>% autoplot() + theme_bw()
-plot_pacf <- PACF(serie, y = preco_m2) %>% autoplot() + theme_bw()
+plot_acf <- ACF(serie, y = preco_m2) %>% autoplot() +
+  labs(title = 'ACF do preço médio do m² ') +
+  theme_bw()
+
+plot_pacf <- PACF(serie, y = preco_m2) %>% autoplot() +
+  labs(title = 'PACF do preço médio do m²') +
+  theme_bw()
 
 #---Previsões---#
 source('scripts/rollingWindow.R')
@@ -83,12 +88,12 @@ serie$valor <- serie$preco_m2 # a coluna de valores da série precisa chamar 'va
 previsoes <- rollingWindow(serie, n = 50, h = 6, excluir_modelo = c('prev_modelo_prophet')) # pra excluir outros modelos, é só colocar o nome da função/arquivo na lista
 
 #---Diagnóstico dos modelos---#
-source('scritps/diag_modelo_drift.R')
-source('scritps/diag_modelo_naive.R')
+source('scripts/diag_modelo_drift.R')
+source('scripts/diag_modelo_naive.R')
 
 
 #---Retornos---#
-source('scritps/retornos.R')
+source('scripts/retornos.R')
 
 
 

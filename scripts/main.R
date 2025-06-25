@@ -5,6 +5,8 @@ library(astsa)
 library(TSA)
 library(forecast)
 library(patchwork)
+library(prophet)
+library(rugarch)
 
 #--- Lendo os dados ---#
 serie <- read_tsv('dados/serie_preco_m2.tsv', 
@@ -73,11 +75,53 @@ plot_seq_season <- gg_season(serie, preco_m2, period = 'year') +
 
 # correlograma
 plot_acf <- ACF(serie, y = preco_m2) %>% autoplot() + theme_bw()
+plot_pacf <- PACF(serie, y = preco_m2) %>% autoplot() + theme_bw()
 
 #---Previsões---#
 source('scripts/rollingWindow.R')
 serie$valor <- serie$preco_m2 # a coluna de valores da série precisa chamar 'valor' (vai facilitar nossa vida caso precisemos trocar de série)
-previsoes <- rollingWindow(serie, n = 50, h = 6)
+previsoes <- rollingWindow(serie, n = 50, h = 6, excluir_modelo = c('prev_modelo_prophet')) # pra excluir outros modelos, é só colocar o nome da função/arquivo na lista
+
+#---Diagnóstico dos modelos---#
+source('scritps/diag_modelo_drift.R')
+source('scritps/diag_modelo_naive.R')
+
+
+#---Retornos---#
+source('scritps/retornos.R')
+
+
+
+#--- Plot Prophet vs Original---#
+plot_seq_prophet_original <-
+local({
+  lam <- BoxCox.lambda(serie$valor, method = 'loglik')
+  valor_transformado <- BoxCox(serie$valor, lambda = lam)
+  
+  model_prophet <- prophet(tsibble(ds = serie$data, y = valor_transformado))
+  future.df <- make_future_dataframe(model_prophet, periods = 1, freq = 'month')
+  prophet_predict <- predict(model_prophet, future.df)$yhat
+  prophet_predict <- InvBoxCox(prophet_predict, lam)
+  
+  serie$prophet_predict <- prophet_predict[1:nrow(serie)]
+  
+  p <- ggplot(
+    serie %>%
+      pivot_longer(cols = c('valor', 'prophet_predict'), values_to = 'preco', names_to = 'dados'),
+    aes(x = data, y = preco, color = dados)
+  ) +
+    geom_line() +
+    labs(title = 'Preço médio do m² (Construção civil) (Estado de SP): Original vs Prophet',
+         x = 'Mês/ano',
+         y = 'Preço',
+         color = '') +
+    scale_color_manual(labels = c('Prophet', 'Original'), values = c("blue", "darkgrey")) +
+    theme_bw()
+  
+  return(p)
+})
+
+
 
 
 #--- Salvando as imagens ---#

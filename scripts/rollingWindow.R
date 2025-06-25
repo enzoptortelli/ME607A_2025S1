@@ -1,13 +1,13 @@
 library(stringr)
 
-rollingWindow <- function(serie, n = 50, h = 3) {
+rollingWindow <- function(serie, n = 50, h = 3, excluir_modelo = '') {
   list_funcs <- list.files(path = 'scripts')
   funcs_previsao <- list_funcs[str_starts(list_funcs, pattern = 'prev_')]
   for(func_file in funcs_previsao) {
     source(str_glue('scripts/',func_file))
   }
   funcs_previsao <- funcs_previsao |> str_sub(end = -3)
-  
+  funcs_previsao <- funcs_previsao[!(funcs_previsao %in% excluir_modelo)]
   num_previsoes <- nrow(serie) - n - h + 1
   
   ema_matrix <- matrix(0, nrow = length(funcs_previsao), ncol = h)

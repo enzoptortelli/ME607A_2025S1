@@ -1,10 +1,13 @@
 Ordem da apresentação:
 1) Plot série sem ajustar
 2) Plot série ajustada
-3) Plot série por ano
-4) Plot box-plot por mês
-5) Plot acf e pacf
-6) Tabela comparação performance dos modelos
-7) Análise residual modelo#1
-8) Análise residual modelo#2
-9) Análise residual modelo#3
+3) Plot box-plot por mês
+4) Plot acf e pacf
+5) Plot periodograma
+6) Plot dos retornos
+7) ACF dos retornos e retornos quadráticos <- acho que aqui nós só falamos que aplicamos o garch, mas nem colocamos os resultados, porque não fazia sentido
+8) Tabela comparação performance dos modelos (agora com PROPHET E SABRINA)
+9) Análise residual modelo#1
+10) Análise residual modelo#2
+11) Análise residual modelo#3
+12) Plot da previsão do prophet (achei legal)
